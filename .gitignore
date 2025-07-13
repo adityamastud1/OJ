@@ -1,0 +1,15 @@
+# Ignore top-level node_modules
+node_modules/
+
+# Ignore client and server node_modules separately
+client/node_modules/
+server/node_modules/
+
+# Ignore build files
+client/build/
+
+# Ignore all environment files
+server/.env
+
+# Optional: log files, temp files
+*.log

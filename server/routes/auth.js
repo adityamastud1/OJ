@@ -28,3 +28,13 @@ router.get('/logout', (req, res) => {
 });
 
 module.exports = router;
+
+
+// GET /auth/current-user
+router.get('/current-user', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.status(200).json({ user: req.user });
+  } else {
+    res.status(401).json({ message: 'Not authenticated' });
+  }
+});

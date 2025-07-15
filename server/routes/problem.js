@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Problem = require('../models/Problem');
+const { ensureAdmin } = require('../middleware/auth');
 
 // GET /problems - list all problems
 router.get('/', async (req, res) => {
@@ -23,16 +24,16 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /problems - Add a new problem
-router.post('/', async (req, res) => {
+// POST /problems - Admin only
+router.post('/', ensureAdmin, async (req, res) => {
   try {
     const newProblem = new Problem(req.body);
     await newProblem.save();
-    res.status(201).json({ message: 'Problem created successfully', problem: newProblem });
+    res.status(201).json({ message: 'Problem created', problem: newProblem });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to create problem' });
   }
 });
+
 
 module.exports = router;

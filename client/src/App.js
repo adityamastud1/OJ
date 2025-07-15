@@ -1,39 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import GoogleLoginButton from './components/GoogleLoginButton';
-import ProblemsList from './pages/ProblemsList'; // Moved it to components for now
+import React from "react";
+import ProblemsList from "./pages/ProblemsList";
+import AddProblemForm from './components/AddProblemForm';
+import Navbar from './components/Navbar';
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
-function App() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    axios.get("http://localhost:5000/auth/login/success", { withCredentials: true })
-      .then((res) => {
-        setUser(res.data.user);
-      })
-      .catch(() => {
-        setUser(null);
-      });
-  }, []);
+function AppContent() {
+  const { user } = useAuth();
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Online Judge</h1>
+    <>
+      <Navbar />
+      <div style={{ padding: "2rem" }}>
+        <h1>Online Judge</h1>
+        <ProblemsList />
+        {user ? (
+          <>
+            <h2>Welcome, {user.fullName}</h2>
+            <p>Email: {user.email}</p>
+            <hr style={{ margin: "2rem 0" }} />
+            {user.role === "admin" && <AddProblemForm />}
+          </>
+        ) : null}
+      </div>
+    </>
+  );
+}
 
-      {user ? (
-        <div>
-          <h2>Welcome, {user.fullName}</h2>
-          <p>Email: {user.email}</p>
-
-          <hr style={{ margin: "2rem 0" }} />
-
-          {/* 👇 Show problems if logged in */}
-          <ProblemsList />
-        </div>
-      ) : (
-        <GoogleLoginButton />
-      )}
-    </div>
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

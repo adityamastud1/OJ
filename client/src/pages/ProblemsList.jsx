@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
+import { useAuth } from "../context/AuthContext";
+// import AddProblemForm from "../components/AddProblemForm";
+import AddProblemForm from "../components/AddProblemForm";
+  
 const ProblemsList = () => {
   const [problems, setProblems] = useState([]);
-
+  const { user } = useAuth();
   useEffect(() => {
     axios.get('http://localhost:5000/problems', { withCredentials: true })
       .then(res => setProblems(res.data))
@@ -19,6 +22,12 @@ const ProblemsList = () => {
             <strong>{problem.title}</strong> — {problem.difficulty}
           </li>
         ))}
+      </ul>
+      <ul>
+        {user && user.role === 'admin' && (
+          <AddProblemForm />
+        )}
+
       </ul>
     </div>
   );

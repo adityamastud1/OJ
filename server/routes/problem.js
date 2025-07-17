@@ -7,6 +7,7 @@ const { ensureAdmin } = require('../middleware/auth');
 router.get('/', async (req, res) => {
   try {
     const problems = await Problem.find();
+    console.log(problems); // ✅ check if problems are fetched correctly
     res.status(200).json(problems);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch problems' });

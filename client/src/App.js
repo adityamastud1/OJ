@@ -1,35 +1,32 @@
 import React from "react";
-import ProblemsList from "./pages/ProblemsList";
-import AddProblemForm from './components/AddProblemForm';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from './components/Navbar';
-import { AuthProvider, useAuth } from "./context/AuthContext";
-
-function AppContent() {
-  const { user } = useAuth();
-
-  return (
-    <>
-      <Navbar />
-      <div style={{ padding: "2rem" }}>
-        <h1>Online Judge</h1>
-        <ProblemsList />
-        {user ? (
-          <>
-            <h2>Welcome, {user.fullName}</h2>
-            <p>Email: {user.email}</p>
-            <hr style={{ margin: "2rem 0" }} />
-            {user.role === "admin" && <AddProblemForm />}
-          </>
-        ) : null}
-      </div>
-    </>
-  );
-}
-
+import { AuthProvider } from "./context/AuthContext";
+import Home from './pages/Home.jsx';
+import AddProblemForm from './components/AddProblemForm';
+import ProblemsList from "./pages/ProblemsList.jsx";
+import Leaderboard from "./pages/Leaderboard.jsx";
+import About from "./pages/About.jsx";
+import Contest from "./pages/Contest.jsx";
+import Personal from "./pages/Personal.jsx";
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <Navbar />
+        <div style={{ padding: "2rem" }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/add-problem" element={<AddProblemForm />} />
+            <Route path="/all-problems" element={<ProblemsList/>} />
+            <Route path="/leaderboard" element={<Leaderboard/>} />            
+            <Route path="/contest" element={<Contest/>} />
+            <Route path="/about" element={<About/>} />
+            <Route path="/personal" element={<Personal/>} />
+            {/* You can add more routes here, like /contests, /about, etc. */}
+          </Routes>
+        </div>
+      </Router>
     </AuthProvider>
   );
 }

@@ -4,11 +4,10 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session'); 
 const cors = require('cors');
-const problemRoutes = require('./routes/problem');
-
-require('./config/passport');
-
-const authRoutes = require('./routes/auth');
+require('./config/passport');       // your Google strategy, serialize/deserialize
+const authRoutes       = require('./routes/auth');
+const problemRoutes    = require('./routes/problem');
+const leaderboardRoutes= require('./routes/leaderboard');
 const app = express();
 app.use(express.json());
 // Enable CORS for frontend
@@ -34,6 +33,7 @@ app.use(passport.session());
 // Routes
 app.use('/auth', authRoutes);
 app.use('/problems', problemRoutes);
+app.use('/leaderboard',leaderboardRoutes);
 
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -42,3 +42,5 @@ mongoose.connect(process.env.MONGO_URI, {
 })
 .then(() => app.listen(5000, () => console.log("Server running on http://localhost:5000")))
 .catch(err => console.error(err));
+
+

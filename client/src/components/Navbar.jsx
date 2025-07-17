@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -15,74 +16,72 @@ import AdbIcon from '@mui/icons-material/Adb';
 import GoogleLoginButton from './GoogleLoginButton';
 import { useAuth } from '../context/AuthContext';
 
-const pages = ['Products', 'Pricing', 'Blog'];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+const settings = ['Profile', 'Dashboard', 'Logout'];
 
 function ResponsiveAppBar() {
+  const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const { user, logout } = useAuth();
 
-  const { user, logout } = useAuth(); // ✅ use global auth state
+  const pages = [
+    { name: 'Problems', path: '/all-problems' },
+    { name: 'Contests', path: '/contest' },
+    { name: 'Leaderboard', path: '/leaderboard' },
+    { name: 'About', path: '/about' },
+    ...(user?.role === 'admin' ? [{ name: 'Add Problem', path: '/add-problem' }] : []),
+  ];
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
+  const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
+  const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
+  const handleCloseNavMenu = () => setAnchorElNav(null);
+  const handleCloseUserMenu = () => setAnchorElUser(null);
 
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
-          <Typography variant="h6" noWrap component="a" href="#" sx={{ mr: 2, display: { xs: 'none', md: 'flex' }, fontFamily: 'monospace', fontWeight: 700, letterSpacing: '.3rem', color: 'inherit', textDecoration: 'none',
-            }}
+          <Typography
+            variant="h6"
+            noWrap
+            onClick={() => navigate('/')}  // ✅ use navigate instead of <a href="#">
+            sx={{ mr: 2, display: { xs: 'none', md: 'flex' }, fontFamily: 'monospace', fontWeight: 700, letterSpacing: '.3rem', color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}
           >
             OJ
           </Typography>
 
-          {/* Left side menu for mobile */}
+
+          {/* Mobile menu */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton size="large" aria-label="menu" onClick={handleOpenNavMenu} color="inherit"
-            >
+            <IconButton size="large" onClick={handleOpenNavMenu} color="inherit">
               <MenuIcon />
             </IconButton>
-            <Menu id="menu-appbar" anchorEl={anchorElNav} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }} keepMounted transformOrigin={{ vertical: 'top', horizontal: 'left' }} open={Boolean(anchorElNav)} onClose={handleCloseNavMenu} sx={{ display: { xs: 'block', md: 'none' } }}
-            >
+            <Menu anchorEl={anchorElNav} open={Boolean(anchorElNav)} onClose={handleCloseNavMenu}>
               {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page}</Typography>
+                <MenuItem key={page.name} onClick={() => {
+                  handleCloseNavMenu();
+                  navigate(page.path);
+                }}>
+                  <Typography textAlign="center">{page.name}</Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
 
-          {/* Logo again for mobile */}
-          <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-          <Typography variant="h5" noWrap component="a" href="#" sx={{ mr: 2, display: { xs: 'flex', md: 'none' }, flexGrow: 1, fontFamily: 'monospace', fontWeight: 700, letterSpacing: '.3rem', color: 'inherit', textDecoration: 'none',
-            }}
-          >
-            OJ
-          </Typography>
-
-          {/* Desktop pages */}
+          {/* Desktop menu */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
-              <Button key={page} onClick={handleCloseNavMenu} sx={{ my: 2, color: 'white', display: 'block' }}
-              >
-                {page}
+              <Button key={page.name} onClick={() => {
+                handleCloseNavMenu();
+                navigate(page.path);
+              }} sx={{ my: 2, color: 'white', display: 'block' }}>
+                {page.name}
               </Button>
             ))}
           </Box>
 
-          {/* Login / Avatar */}
+          {/* Avatar or login */}
           <Box sx={{ flexGrow: 0 }}>
             {user ? (
               <>
@@ -91,24 +90,19 @@ function ResponsiveAppBar() {
                     <Avatar alt={user.fullName || 'User'} src="/static/images/avatar/2.jpg" />
                   </IconButton>
                 </Tooltip>
-                <Menu sx={{ mt: '45px' }} id="menu-appbar" anchorEl={anchorElUser} anchorOrigin={{ vertical: 'top', horizontal: 'right' }} keepMounted transformOrigin={{ vertical: 'top', horizontal: 'right' }} open={Boolean(anchorElUser)} onClose={handleCloseUserMenu}
-                >
+                <Menu anchorEl={anchorElUser} open={Boolean(anchorElUser)} onClose={handleCloseUserMenu}>
                   {settings.map((setting) => (
-                    <MenuItem
-                      key={setting}
-                      onClick={() => {
-                        handleCloseUserMenu();
-                        if (setting === 'Logout') logout();
-                      }}
-                    >
+                    <MenuItem key={setting} onClick={() => {
+                      handleCloseUserMenu();
+                      if (setting === 'Logout') logout();
+                      if(setting === 'Profile') navigate('/personal');
+                    }}>
                       <Typography textAlign="center">{setting}</Typography>
                     </MenuItem>
                   ))}
                 </Menu>
               </>
-            ) : (
-              <GoogleLoginButton />
-            )}
+            ) : <GoogleLoginButton />}
           </Box>
         </Toolbar>
       </Container>

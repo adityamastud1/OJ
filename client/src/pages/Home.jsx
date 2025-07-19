@@ -17,8 +17,8 @@ const Home = () => {
           {/* {user.role === "admin" && <AddProblemForm />} */}
         </>
       ) : null}
-      <ProblemsList />
-      <hr style={{ margin: "2rem 0" }} />
+      {/* <ProblemsList /> */}
+      {/* <hr style={{ margin: "2rem 0" }} /> */}
       <h1><a href="/leaderboard" className="font-red">go to leaderboard</a></h1>
     </>
   );

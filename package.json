@@ -14,6 +14,9 @@
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.2.0",
     "axios": "^1.10.0",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.6.3"
   }
 }

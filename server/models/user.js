@@ -3,10 +3,21 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
   googleId: {
     type: String,
+    default: null // 👈 for local (JWT) users, this will be null
+  },
+  fullName: {
+    type: String,
     required: true
   },
-  fullName: String,
-  email: String,
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  password: {
+    type: String,
+    default: null // 👈 only used for JWT login
+  },
   role: {
     type: String,
     enum: ['user', 'admin'],

@@ -15,7 +15,7 @@ import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import GoogleLoginButton from './GoogleLoginButton';
 import { useAuth } from '../context/AuthContext';
-
+import Login from '../pages/Signin';
 const settings = ['Profile', 'Dashboard', 'Logout'];
 
 function ResponsiveAppBar() {
@@ -81,6 +81,8 @@ function ResponsiveAppBar() {
             ))}
           </Box>
 
+          
+          
           {/* Avatar or login */}
           <Box sx={{ flexGrow: 0 }}>
             {user ? (
@@ -102,7 +104,7 @@ function ResponsiveAppBar() {
                   ))}
                 </Menu>
               </>
-            ) : <GoogleLoginButton />}
+            ) : <button onClick={() => navigate('/signin')}>Sign in</button>}
           </Box>
         </Toolbar>
       </Container>

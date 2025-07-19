@@ -9,6 +9,7 @@ import Leaderboard from "./pages/Leaderboard.jsx";
 import About from "./pages/About.jsx";
 import Contest from "./pages/Contest.jsx";
 import Personal from "./pages/Personal.jsx";
+import Signin from "./pages/Signin.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -23,6 +24,7 @@ function App() {
             <Route path="/contest" element={<Contest/>} />
             <Route path="/about" element={<About/>} />
             <Route path="/personal" element={<Personal/>} />
+            <Route path="/signin" element={<Signin />} />
             {/* You can add more routes here, like /contests, /about, etc. */}
           </Routes>
         </div>

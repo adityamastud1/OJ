@@ -20,7 +20,7 @@ export default function Signin() {
     const endpoint = isSignup ? 'register' : 'login';
 
     try {
-      const res = await axios.post(`http://localhost:5000/auth/${endpoint}`, formData);
+      const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/auth/${endpoint}`, formData);
       setUser(res.data.user);
       localStorage.setItem('token', res.data.token);
       navigate('/');

@@ -6,7 +6,7 @@ const ProblemsList = () => {
   const [problems, setProblems] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/problems', { withCredentials: true })
+    axios.get(`${process.env.REACT_APP_BACKEND_URL}/problems`, { withCredentials: true })
       .then(res => setProblems(res.data))
       .catch(err => console.error('Error fetching problems:', err));
   }, []);

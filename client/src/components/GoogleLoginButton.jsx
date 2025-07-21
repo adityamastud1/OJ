@@ -2,7 +2,7 @@ import React from 'react';
 import googleLogo from '../assets/google-logo.png';
 const GoogleLoginButton = () => {
   const handleLogin = () => {
-    window.open("http://localhost:5000/auth/google", "_self");
+    window.open(`${process.env.REACT_APP_BACKEND_URL}/auth/google`, "_self");
   };
 
   return (

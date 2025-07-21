@@ -5,7 +5,7 @@ const Leaderboard = () => {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/leaderboard', { withCredentials: true })
+    axios.get(`${process.env.REACT_APP_BACKEND_URL}/leaderboard`, { withCredentials: true })
       .then(res => {
         // Sort users by score in descending order
         const sortedUsers = res.data.sort((a, b) => b.score - a.score);

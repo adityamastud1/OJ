@@ -27,7 +27,7 @@ const AddProblemForm = () => {
         testcases: JSON.parse(form.testcases)
       };
 
-      await axios.post('http://localhost:5000/problems', problemData, {
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/problems`, problemData, {
         withCredentials: true
       });
 

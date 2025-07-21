@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/auth/login/success", {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/auth/login/success`, {
         withCredentials: true,
       });
       setUser(res.data.user);
@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.get("http://localhost:5000/auth/logout", {
+      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/auth/logout`, {
         withCredentials: true,
       });
       setUser(null);

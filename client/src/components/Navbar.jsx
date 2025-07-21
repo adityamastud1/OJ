@@ -12,10 +12,8 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
-import AdbIcon from '@mui/icons-material/Adb';
-import GoogleLoginButton from './GoogleLoginButton';
 import { useAuth } from '../context/AuthContext';
-import Login from '../pages/Signin';
+
 const settings = ['Profile', 'Dashboard', 'Logout'];
 
 function ResponsiveAppBar() {
@@ -24,12 +22,13 @@ function ResponsiveAppBar() {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const { user, logout } = useAuth();
 
+  // Show all links regardless of role, but "Add Problem" only appears for admins
   const pages = [
     { name: 'Problems', path: '/all-problems' },
     { name: 'Contests', path: '/contest' },
     { name: 'Leaderboard', path: '/leaderboard' },
     { name: 'About', path: '/about' },
-    ...(user?.role === 'admin' ? [{ name: 'Add Problem', path: '/add-problem' }] : []),
+    { name: 'Add Problem', path: '/add-problem', adminOnly: true },
   ];
 
   const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
@@ -38,73 +37,127 @@ function ResponsiveAppBar() {
   const handleCloseUserMenu = () => setAnchorElUser(null);
 
   return (
-    <AppBar position="static">
+    <AppBar
+      position="static"
+      sx={{
+        backgroundColor: '#1c1c1c', // greyish tone
+        boxShadow: 'none',
+        borderBottom: '0.5px solid #facc15',
+      }}
+    >
       <Container maxWidth="xl">
-        <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
+          {/* Logo */}
           <Typography
             variant="h6"
-            noWrap
-            onClick={() => navigate('/')}  // ✅ use navigate instead of <a href="#">
-            sx={{ mr: 2, display: { xs: 'none', md: 'flex' }, fontFamily: 'monospace', fontWeight: 700, letterSpacing: '.3rem', color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+            sx={{
+              fontWeight: 700,
+              letterSpacing: '.1rem',
+              color: 'white',
+              cursor: 'pointer',
+              display: { xs: 'none', md: 'flex' },
+              mr: 3,
+            }}
           >
             OJ
           </Typography>
 
+          {/* Left-aligned nav links */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, flexGrow: 1 }}>
+            {pages.map((page) => {
+              // Hide admin-only links if not admin
+              if (page.adminOnly && user?.role !== 'admin') return (
+                <Box key={page.name} sx={{ width: '105px' }} /> // ⬅ placeholder to preserve spacing
+              );
 
-          {/* Mobile menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+              return (
+                <Button
+                  key={page.name}
+                  onClick={() => navigate(page.path)}
+                  sx={{
+                    color: 'white',
+                    fontWeight: 500,
+                    transition: 'all 0.3s ease',
+                    mr: 1.5,
+                    '&:hover': {
+                      color: '#facc15', // yellow-400
+                      backgroundColor: 'transparent',
+                    }
+                  }}
+                >
+                  {page.name}
+                </Button>
+              );
+            })}
+          </Box>
+
+          {/* Mobile Menu (hamburger) */}
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton size="large" onClick={handleOpenNavMenu} color="inherit">
               <MenuIcon />
             </IconButton>
             <Menu anchorEl={anchorElNav} open={Boolean(anchorElNav)} onClose={handleCloseNavMenu}>
-              {pages.map((page) => (
-                <MenuItem key={page.name} onClick={() => {
-                  handleCloseNavMenu();
-                  navigate(page.path);
-                }}>
-                  <Typography textAlign="center">{page.name}</Typography>
-                </MenuItem>
-              ))}
+              {pages.map((page) => {
+                if (page.adminOnly && user?.role !== 'admin') return null;
+                return (
+                  <MenuItem
+                    key={page.name}
+                    onClick={() => {
+                      handleCloseNavMenu();
+                      navigate(page.path);
+                    }}
+                  >
+                    <Typography>{page.name}</Typography>
+                  </MenuItem>
+                );
+              })}
             </Menu>
           </Box>
 
-          {/* Desktop menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Button key={page.name} onClick={() => {
-                handleCloseNavMenu();
-                navigate(page.path);
-              }} sx={{ my: 2, color: 'white', display: 'block' }}>
-                {page.name}
-              </Button>
-            ))}
-          </Box>
-
-          
-          
-          {/* Avatar or login */}
-          <Box sx={{ flexGrow: 0 }}>
+          {/* Right side: avatar or sign-in */}
+          <Box>
             {user ? (
               <>
-                <Tooltip title="Open settings">
+                <Tooltip title="Account settings">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt={user.fullName || 'User'} src="/static/images/avatar/2.jpg" />
+                    <Avatar alt={user.fullName || 'User'} />
                   </IconButton>
                 </Tooltip>
                 <Menu anchorEl={anchorElUser} open={Boolean(anchorElUser)} onClose={handleCloseUserMenu}>
                   {settings.map((setting) => (
-                    <MenuItem key={setting} onClick={() => {
-                      handleCloseUserMenu();
-                      if (setting === 'Logout') logout();
-                      if(setting === 'Profile') navigate('/personal');
-                    }}>
-                      <Typography textAlign="center">{setting}</Typography>
+                    <MenuItem
+                      key={setting}
+                      onClick={() => {
+                        handleCloseUserMenu();
+                        if (setting === 'Logout') logout();
+                        if (setting === 'Profile') navigate('/personal');
+                      }}
+                    >
+                      <Typography>{setting}</Typography>
                     </MenuItem>
                   ))}
                 </Menu>
               </>
-            ) : <button onClick={() => navigate('/signin')}>Sign in</button>}
+            ) : (
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/signin')}
+                sx={{
+                  borderColor: '#888',
+                  color: '#ccc',
+                  fontWeight: 500,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    backgroundColor: '#333',
+                    color: '#facc15',
+                    borderColor: '#facc15',
+                  },
+                }}
+              >
+                Sign in
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </Container>

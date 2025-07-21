@@ -14,11 +14,8 @@ const Home = () => {
           <h2>Welcome, {user.fullName}</h2>
           <p>Email: {user.email}</p>
           <hr style={{ margin: "2rem 0" }} />
-          {/* {user.role === "admin" && <AddProblemForm />} */}
         </>
       ) : null}
-      {/* <ProblemsList /> */}
-      {/* <hr style={{ margin: "2rem 0" }} /> */}
       <h1><a href="/leaderboard" className="font-red">go to leaderboard</a></h1>
     </>
   );

@@ -11,5 +11,9 @@ client/build/
 # Ignore all environment files
 server/.env
 
+# Ignore all environment files
+client/.env
+
+
 # Optional: log files, temp files
 *.log

@@ -11,6 +11,7 @@ const TestCaseSchema = new mongoose.Schema({
   }
 });
 
+
 const ProblemSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -27,7 +28,12 @@ const ProblemSchema = new mongoose.Schema({
     enum: ['Easy', 'Medium', 'Hard'],
     default: 'Easy'
   },
-  testcases: [TestCaseSchema]
+  testcases: [TestCaseSchema],
+  tags: {
+    type: [String],
+    default: [],
+    validate: [arr => arr.length <= 5, "You can specify up to 5 tags"]
+  }
 });
 
 module.exports = mongoose.model('Problem', ProblemSchema);

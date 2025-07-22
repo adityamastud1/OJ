@@ -16,9 +16,11 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="bg-[#0f0f0f] text-white">
+        <div className=" text-white"
+         style={{ backgroundColor: '#20201E' }}
+         >
           <Navbar className="fixed top-0 left-0 w-full z-50" />
-          <div className="pt-16 min-h-screen">
+          <div className="pt-16">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/add-problem" element={<AddProblemForm />} />

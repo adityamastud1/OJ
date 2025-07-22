@@ -12,7 +12,7 @@ const RunCodePage = () => {
     const handleRun = async () => {
     setLoading(true);
     try {
-        const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/compile`, {code,});
+        const response = await axios.post(`${process.env.REACT_APP_COMPILER_URL}/compile`, {code, stdin});
         setOutput(response.data.output);
     } catch (err) {
         setOutput("Error: " + (err.response?.data?.error || "Something went wrong"));
@@ -23,7 +23,7 @@ const RunCodePage = () => {
 
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div >
       <div>
         <label>Select Language: </label>
         <div className="bg-[#000000] text-white p-2 rounded">
@@ -37,18 +37,19 @@ const RunCodePage = () => {
 
       <CodeEditor code={code} setCode={setCode} language={language} />
 
-      <div className="mt-10 bg-[#1c1c1c]">
-        <textarea className="bg-[#1c1c1c]"
+      <div className="mt-10 border border-yellow-500 p-2">
+        <textarea
+          className="bg-[#1c1c1c] text-white w-full"
           placeholder="Enter input (stdin)"
           rows={5}
-          cols={80}
           value={stdin}
           onChange={(e) => setStdin(e.target.value)}
         />
       </div>
 
-      <div className="mt-10 bg-[#1c1c1c]">
-        <button onClick={handleRun} disabled={loading}>
+
+      <div className="mt-10 bg-[#f12222]">
+        <button style = {{backgroundColor: "#f12222"}} className="mt-10 bg-[#f12222]" onClick={handleRun} disabled={loading}>
           {loading ? "Running..." : "Run Code"}
         </button>
       </div>

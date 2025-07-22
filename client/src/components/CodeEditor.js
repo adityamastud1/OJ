@@ -3,8 +3,8 @@ import Editor from "@monaco-editor/react";
 
 const CodeEditor = ({ code, setCode, language }) => {
   return (
-    <Editor
-      height="400px"
+    <Editor 
+      height="550px"
       language={language}
       theme="vs-dark"
       value={code}

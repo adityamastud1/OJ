@@ -10,13 +10,20 @@ const ProblemDetails = () => {
   const [code, setCode] = useState("// Write your solution here");
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stdin, setStdin] = useState("");
+  const [language, setLanguage] = useState("cpp");
 
   const handleRun = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/compile`, {
-        code,
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_COMPILER_URL}/compile`,
+        {
+          code,
+          stdin,
+          language
+        }
+      );
       setOutput(response.data.output);
     } catch (err) {
       setOutput(
@@ -29,7 +36,9 @@ const ProblemDetails = () => {
 
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BACKEND_URL}/problems/${id}`, { withCredentials: true })
+      .get(`${process.env.REACT_APP_BACKEND_URL}/problems/${id}`, {
+        withCredentials: true,
+      })
       .then((res) => setProblem(res.data))
       .catch((err) => console.error("Error fetching problem:", err));
   }, [id]);
@@ -38,7 +47,7 @@ const ProblemDetails = () => {
     return <p className="text-white text-center mt-10">Loading...</p>;
 
   return (
-    <div className="flex h-screen bg-[#1c1c1c] text-white">
+    <div className="flex h-screen text-white" style={{ backgroundColor: "#20201E" }}>
       {/* Left side: Problem description */}
       <div className="w-1/2 overflow-y-auto px-8 py-6 border-r border-gray-700 mb-2">
         <h1 className="text-2xl font-bold mb-2">{problem.title}</h1>
@@ -99,31 +108,60 @@ const ProblemDetails = () => {
         </div>
       </div>
 
-      {/* Right side: Editor placeholder */}
-      <div className="w-1/2 bg-[#1c1c1c] px-6 py-4 overflow-y-auto">
-        <h2 className="text-lg font-semibold mb-2 text-white">Code</h2>
-        <div className="h-[90%] border border-gray-700 rounded bg-[#0f0f0f] p-4 text-gray-300">
-          {/* Replace this with actual Monaco or Ace editor later */}
-          <div className="flex flex-col h-full">
-            <div className="flex-grow">
-              <CodeEditor code={code} setCode={setCode} language="cpp" />
-            </div>
-
+      {/* Right side: Editor, Input, Output */}
+      <div className="w-1/2 bg-[#434242] px-6 py-6 overflow-y-auto space-y-6">
+        {/* Editor Section */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold text-white">Code Editor</h2>
             <button
-              className="mt-4 bg-green-700 hover:bg-green-800 text-white py-2 px-4 rounded"
               onClick={handleRun}
               disabled={loading}
+              className="bg-green-600 hover:bg-green-700 disabled:opacity-60 transition-colors text-white font-semibold py-2 px-4 rounded-md shadow"
             >
               {loading ? "Running..." : "Run Code"}
             </button>
-
-            <div className="mt-4">
-              <h3 className="text-white font-semibold mb-1">Output:</h3>
-              <pre className="bg-[#0f0f0f] p-3 rounded text-gray-300 whitespace-pre-wrap">
-                {output}
-              </pre>
-            </div>
           </div>
+          <div className="flex items-center gap-4 mb-4">
+            <label className="text-white font-medium">Language:</label>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="bg-[#0f0f0f] border border-gray-700 text-white rounded px-3 py-1"
+            >
+              <option value="cpp">C++</option>
+              <option value="python">Python</option>
+              <option value="java">Java</option>
+            </select>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-[#0f0f0f] shadow-md">
+            <CodeEditor code={code} setCode={setCode} language={language} />
+          </div>
+
+        </div>
+
+
+        {/* Custom Input */}
+        <div>
+          <h3 className="text-white font-semibold mb-2">Custom Input</h3>
+          <textarea
+            className="w-full p-3 rounded-lg bg-[#0f0f0f] border border-gray-700 text-white shadow-inner resize-y"
+            rows={4}
+            placeholder="Enter input (stdin)..."
+            value={stdin}
+            onChange={(e) => setStdin(e.target.value)}
+          />
+        </div>
+
+
+
+        {/* Output */}
+        <div>
+          <h3 className="text-white font-semibold mb-9">Output</h3>
+          <pre className="w-full p-3 rounded-lg bg-[#0f0f0f] border border-gray-700 text-gray-200 whitespace-pre-wrap shadow-inner  resize-y">
+            {output}
+          </pre>
         </div>
       </div>
     </div>

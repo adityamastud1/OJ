@@ -1,87 +1,107 @@
 const express = require("express");
 const fs = require("fs");
-const { exec } = require("child_process");
 const path = require("path");
 const cors = require("cors");
+const { spawn, exec } = require("child_process");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/compile", async (req, res) => {
-  const { code, stdin = "", language = "cpp" } = req.body;
+const TEMP_DIR = path.join(__dirname, "temp");
+if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
+
+app.post("/compile", (req, res) => {
+  const { code, language = "cpp" } = req.body;
+  // use same fallback key in all languages:
+  const rawInput = req.body.stdin ?? req.body.input ?? "";
 
   const timestamp = Date.now();
-  const folder = path.join(__dirname, "temp");
   const extensions = { cpp: "cpp", python: "py", java: "java" };
-  const extension = extensions[language];
+  const ext = extensions[language];
+  const filename = `code_${timestamp}.${ext}`;
+  const filepath = path.join(TEMP_DIR, filename);
 
-  const filename = `code_${timestamp}.${extension}`;
-  const filepath = path.join(folder, filename);
+  // Save incoming source
+  fs.writeFileSync(filepath, code);
 
-  fs.writeFile(filepath, code, (err) => {
-    if (err) return res.status(500).json({ error: "Failed to save file" });
+  // cleanup helper
+  const cleanup = (files) => {
+    files.forEach((f) => {
+      try { fs.unlinkSync(f); } catch (_) {}
+    });
+  };
 
-    let compileCmd, runCmd;
+  if (language === "cpp") {
+    // -- (unchanged) --
+    const exe = filepath.replace(".cpp", ".exe");
+    exec(`g++ "${filepath}" -o "${exe}"`, (err, _, stderr) => {
+      if (err) return res.json({ output: "Compilation Error:\n" + stderr });
+      const p = spawn(exe, []);
+      p.stdin.write(rawInput);
+      p.stdin.end();
 
-    if (language === "cpp") {
-      const outputExe = filepath.replace(`.${extension}`, ".exe");
-      compileCmd = `g++ "${filepath}" -o "${outputExe}"`;
-      runCmd = `"${outputExe}"`;
-      exec(compileCmd, (compileErr, _, stderr) => {
-        if (compileErr)
-          return res.json({ output: `Compilation Error:\n${stderr}` });
-        const runProcess = exec(runCmd, (runErr, stdout, stderrRun) => {
-          if (runErr)
-            return res.json({ output: `Runtime Error:\n${stderrRun}` });
-          res.json({ output: stdout });
-          fs.unlinkSync(filepath);
-          fs.unlinkSync(outputExe);
-        });
-        runProcess.stdin.write(stdin);
-        runProcess.stdin.end();
+      let out = "", errOut = "";
+      p.stdout.on("data", d => out += d);
+      p.stderr.on("data", d => errOut += d);
+      p.on("close", code => {
+        cleanup([filepath, exe]);
+        if (code !== 0) return res.json({ output: "Runtime Error:\n" + errOut });
+        res.json({ output: out });
       });
-    } else if (language === "python") {
-      runCmd = `python "${filepath}"`;
-      const runProcess = exec(runCmd, (runErr, stdout, stderr) => {
-        if (runErr) return res.json({ output: `Runtime Error:\n${stderr}` });
-        res.json({ output: stdout });
-        fs.unlinkSync(filepath);
+    });
+
+  } else if (language === "python") {
+    // write rawInput directly
+    const p = spawn("python", [filepath]);
+    p.stdin.write(rawInput);
+    p.stdin.end();
+
+    let out = "", errOut = "";
+    p.stdout.on("data", d => out += d);
+    p.stderr.on("data", d => errOut += d);
+    p.on("close", code => {
+      cleanup([filepath]);
+      if (code !== 0) return res.json({ output: "Runtime Error:\n" + errOut });
+      res.json({ output: out });
+    });
+
+  } else if (language === "java") {
+    // rewrite class name for uniqueness
+    const className = `Main_${timestamp}`;
+    const javaFile = path.join(TEMP_DIR, `${className}.java`);
+    const modifiedCode = code.replace(
+      /public\s+class\s+\w+/,
+      `public class ${className}`
+    );
+    fs.writeFileSync(javaFile, modifiedCode);
+
+    exec(`javac "${javaFile}"`, (err, _, stderr) => {
+      if (err) {
+        cleanup([filepath, javaFile]);
+        return res.json({ output: "Compilation Error:\n" + stderr });
+      }
+      const p = spawn("java", ["-cp", TEMP_DIR, className]);
+      p.stdin.write(rawInput);
+      p.stdin.end();
+
+      let out = "", errOut = "";
+      p.stdout.on("data", d => out += d);
+      p.stderr.on("data", d => errOut += d);
+      p.on("close", code => {
+        cleanup([
+          filepath,
+          javaFile,
+          path.join(TEMP_DIR, `${className}.class`)
+        ]);
+        if (code !== 0) return res.json({ output: "Runtime Error:\n" + errOut });
+        res.json({ output: out });
       });
-      runProcess.stdin.write(stdin);
-      runProcess.stdin.end();
-    } else if (language === "java") {
-      const tempDir = path.dirname(filepath); // ensure you mkdirSync(tempDir)
-      // Overwrite filename to 'Main.java'
-      const javaFile = path.join(tempDir, "Main.java");
-      fs.writeFileSync(javaFile, code);
+    });
 
-      // 1) Compile
-      const compileJava = `javac "${javaFile}"`;
-      exec(compileJava, (compileErr, _, stderr) => {
-        if (compileErr) {
-          return res.json({ output: `Compilation Error:\n${stderr}` });
-        }
-
-        // 2) Run
-        const runJava = `java -cp "${tempDir}" Main`;
-        const runProc = exec(runJava, (runErr, stdout, stderrRun) => {
-          if (runErr) {
-            return res.json({ output: `Runtime Error:\n${stderrRun}` });
-          }
-          res.json({ output: stdout });
-          // Clean up
-          fs.unlinkSync(javaFile);
-          fs.unlinkSync(path.join(tempDir, "Main.class"));
-        });
-
-        runProc.stdin.write(stdin);
-        runProc.stdin.end();
-      });
-    } else {
-      res.status(400).json({ error: "Unsupported language" });
-    }
-  });
+  } else {
+    res.status(400).json({ error: "Unsupported language" });
+  }
 });
 
 app.listen(8000, () => {

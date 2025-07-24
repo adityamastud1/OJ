@@ -46,3 +46,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 const compileRoute = require("./routes/compile");
 app.use("/api/compile", compileRoute);
+
+
+const submitRoutes = require('./routes/submit');
+app.use('/api/submit', submitRoutes);

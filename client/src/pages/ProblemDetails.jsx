@@ -32,30 +32,75 @@ const ProblemDetails = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    setSubmitting(true);
-    setVerdicts([]);
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/submit/${id}`,
-        {
-          language,
-          code,
-        },
-        {
-          withCredentials: true,
-        }
-      );
+// const handleSubmit = async () => {
+//   setSubmitting(true);
+//   setVerdicts([]);
 
-      setVerdicts(response.data.verdicts || []);
-    } catch (err) {
-      setVerdicts([
-        "Error: " + (err.response?.data?.error || "Submission failed."),
-      ]);
-    } finally {
-      setSubmitting(false);
+//   try {
+//     const token = localStorage.getItem("token"); // JWT is stored here after login
+//     const headers = {
+//       // Send cookies for OAuth
+//       withCredentials: true,
+//     };
+
+//     if (token) {
+//       headers.Authorization = `Bearer ${token}`; // Add JWT header if present
+//     }
+
+//     const response = await axios.post(
+//       `${process.env.REACT_APP_BACKEND_URL}/api/submit/${id}`,
+//       { language, code },
+//       {
+//         ...headers,
+//       }
+//     );
+
+//     setVerdicts(response.data.verdicts || []);
+//   } catch (err) {
+//     setVerdicts([
+//       "Error: " + (err.response?.data?.error || "Submission failed."),
+//     ]);
+//   } finally {
+//     setSubmitting(false);
+//   }
+// };
+
+const handleSubmit = async () => {
+  setSubmitting(true);
+  setVerdicts([]);
+
+  try {
+    const token = localStorage.getItem("token");
+
+    // Axios config needs to have a `headers` object
+    const config = {
+      withCredentials: true,  // keep this for your OAuth users
+      headers: {}             // this is where we’ll put the JWT header
+    };
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  };
+
+    const response = await axios.post(
+      `${process.env.REACT_APP_BACKEND_URL}/api/submit/${id}`,
+      { language, code },
+      config
+    );
+
+    setVerdicts(response.data.verdicts || []);
+  } catch (err) {
+    setVerdicts([
+      "Error: " + (err.response?.data?.error || "Submission failed."),
+    ]);
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+
+
+
 
   useEffect(() => {
     axios

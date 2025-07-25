@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Problem = require("../models/Problem");
 const axios = require("axios");
-const Submission = require("../models/submission"); // ✅ added
+const Submission = require("../models/submission");
 const { ensureAuthenticated } = require("../middleware/auth");
 
 router.post("/", async (req, res) => {
@@ -18,7 +18,7 @@ router.post("/", async (req, res) => {
 });
 
 router.post("/:problemId", ensureAuthenticated, async (req, res) => {
-  console.log("Received submission for problem:", req.params.problemId); // ✅
+  console.log("Received submission for problem:", req.params.problemId);
   try {
     const { problemId } = req.params;
     const { code, language } = req.body;
@@ -28,16 +28,10 @@ router.post("/:problemId", ensureAuthenticated, async (req, res) => {
 
     const testcases = problem.testcases;
     const verdicts = [];
-    console.log("testcases size is:", testcases.length); // ✅
+    console.log("testcases size is:", testcases.length);
 
     for (let i = 0; i < testcases.length; i++) {
       const testcase = testcases[i];
-      console.log("Sending to compiler:", {
-        code,
-        language,
-        input: testcase.input,
-      });
-
       try {
         const response = await axios.post(
           `${process.env.COMPILER_URL}/compile`,
@@ -47,29 +41,45 @@ router.post("/:problemId", ensureAuthenticated, async (req, res) => {
             input: testcase.input,
           },
           {
-            timeout: 5000,
+            timeout: 7000,
           }
         );
 
-        const userOutput = response.data.output.trim();
-        const expectedOutput = testcase.output.trim();
+        const output = response.data.output ?? "";
+        const trimmedOutput = output.trim();
 
-        console.log(
-          `Testcase #${i + 1} Passed?`,
-          userOutput === expectedOutput
-        );
-        verdicts.push(userOutput === expectedOutput);
+        // handle errors properly
+        if (trimmedOutput.startsWith("Compilation Error")) {
+          return res.json({
+            message: "Compilation Error",
+            passed: false,
+            verdicts: ["Compilation Error"],
+          });
+        }
+
+        if (trimmedOutput.startsWith("Runtime Error")) {
+          verdicts.push("Runtime Error");
+          continue;
+        }
+
+        if (trimmedOutput === "Time Limit Exceeded") {
+          verdicts.push("TLE");
+          continue;
+        }
+
+        const expectedOutput = testcase.output.trim();
+        const passed = trimmedOutput === expectedOutput;
+        verdicts.push(passed ? "Passed" : "Failed");
       } catch (error) {
         console.error(`Error on testcase ${i + 1}:`, error.message);
-        verdicts.push(false); // Treat as failed testcase
+        verdicts.push("Error");
       }
     }
 
-    const allPassed = verdicts.every((v) => v);
+    const allPassed = verdicts.every((v) => v === "Passed");
 
-    // ✅ Save the submission
     await Submission.create({
-      user: req.user._id, // must be available via auth middleware
+      user: req.user._id,
       problem: problemId,
       language,
       code,

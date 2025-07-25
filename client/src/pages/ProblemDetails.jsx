@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import CodeEditor from "../components/CodeEditor";
+import { useAuth } from "../context/AuthContext";
 
 const ProblemDetails = () => {
   const { id } = useParams();
@@ -14,6 +15,13 @@ const ProblemDetails = () => {
   const [language, setLanguage] = useState("cpp");
   const [verdicts, setVerdicts] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
 
   const handleRun = async () => {
     setLoading(true);
@@ -32,75 +40,47 @@ const ProblemDetails = () => {
     }
   };
 
-// const handleSubmit = async () => {
-//   setSubmitting(true);
-//   setVerdicts([]);
-
-//   try {
-//     const token = localStorage.getItem("token"); // JWT is stored here after login
-//     const headers = {
-//       // Send cookies for OAuth
-//       withCredentials: true,
-//     };
-
-//     if (token) {
-//       headers.Authorization = `Bearer ${token}`; // Add JWT header if present
-//     }
-
-//     const response = await axios.post(
-//       `${process.env.REACT_APP_BACKEND_URL}/api/submit/${id}`,
-//       { language, code },
-//       {
-//         ...headers,
-//       }
-//     );
-
-//     setVerdicts(response.data.verdicts || []);
-//   } catch (err) {
-//     setVerdicts([
-//       "Error: " + (err.response?.data?.error || "Submission failed."),
-//     ]);
-//   } finally {
-//     setSubmitting(false);
-//   }
-// };
-
-const handleSubmit = async () => {
-  setSubmitting(true);
-  setVerdicts([]);
-
-  try {
-    const token = localStorage.getItem("token");
-
-    // Axios config needs to have a `headers` object
-    const config = {
-      withCredentials: true,  // keep this for your OAuth users
-      headers: {}             // this is where we’ll put the JWT header
-    };
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  const handleSubmit = async () => {
+    if (!isLoggedIn) {
+      setVerdicts(["Error: Please login to submit."]);
+      return;
     }
+    setSubmitting(true);
+    setVerdicts([]);
 
-    const response = await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/api/submit/${id}`,
-      { language, code },
-      config
-    );
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setVerdicts(["Error: Please login to submit."]);
+        setSubmitting(false);
+        return;
+      }
 
-    setVerdicts(response.data.verdicts || []);
-  } catch (err) {
-    setVerdicts([
-      "Error: " + (err.response?.data?.error || "Submission failed."),
-    ]);
-  } finally {
-    setSubmitting(false);
-  }
-};
+      // Axios config needs to have a `headers` object
+      const config = {
+        withCredentials: true, // keep this for your OAuth users
+        headers: {}, // this is where we’ll put the JWT header
+      };
 
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
 
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submit/${id}`,
+        { language, code },
+        config
+      );
 
-
+      setVerdicts(response.data.verdicts || []);
+    } catch (err) {
+      setVerdicts([
+        "Error: " + (err.response?.data?.error || "Submission failed."),
+      ]);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     axios
@@ -199,14 +179,25 @@ const handleSubmit = async () => {
               <option value="java">Java</option>
             </select>
           </div>
+
           <div className="flex gap-4 mt-2">
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 transition-colors text-white font-semibold py-2 px-4 rounded-md shadow"
-            >
-              {submitting ? "Submitting..." : "Submit"}
-            </button>
+            {user ? (
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 transition-colors text-white font-semibold py-2 px-4 rounded-md shadow"
+              >
+                {submitting ? "Submitting..." : "Submit"}
+              </button>
+            ) : (
+              <p className="text-yellow-300 mt-2">
+                Please{" "}
+                <a href="/login" className="underline text-blue-300">
+                  log in
+                </a>{" "}
+                to submit your solution.
+              </p>
+            )}
           </div>
 
           <div className="rounded-lg border border-gray-700 bg-[#0f0f0f] shadow-md">
@@ -224,13 +215,25 @@ const handleSubmit = async () => {
             value={stdin}
             onChange={(e) => setStdin(e.target.value)}
           />
-          <button
-            onClick={handleRun}
-            disabled={loading}
-            className="bg-green-600 hover:bg-green-700 disabled:opacity-60 transition-colors text-white font-semibold py-2 px-4 rounded-md shadow"
-          >
-            {loading ? "Running..." : "Run on custom input"}
-          </button>
+          <div>
+            {user ? (
+              <button
+                onClick={handleRun}
+                disabled={loading}
+                className="bg-green-600 hover:bg-green-800 disabled:opacity-60 transition-colors text-white font-semibold py-2 px-4 rounded-md shadow"
+              >
+                {loading ? "Running..." : "Run on custom input"}
+              </button>
+            ) : (
+              <p>
+                Please{" "}
+                <a href="/login" className="underline text-blue-300 hover:text-blue-700">
+                  log in
+                </a>{" "}
+                to run custom input.
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Output */}
@@ -240,7 +243,6 @@ const handleSubmit = async () => {
             {output}
           </pre>
         </div>
-        {/* Verdicts */}
         {verdicts.length > 0 && (
           <div>
             <h3 className="text-white font-semibold mb-2 mt-6">
@@ -251,15 +253,19 @@ const handleSubmit = async () => {
                 <li
                   key={idx}
                   className={`p-2 rounded ${
-                    v === true
+                    v === "Passed"
                       ? "bg-green-800 text-green-200"
-                      : v === false
+                      : v === "Failed"
                       ? "bg-red-800 text-red-200"
                       : "bg-yellow-700 text-yellow-100"
                   }`}
                 >
                   Testcase {idx + 1}:{" "}
-                  {v === true ? "Passed ✅" : v === false ? "Failed ❌" : v}
+                  {v === "Passed"
+                    ? "Passed ✅"
+                    : v === "Failed"
+                    ? "Failed ❌"
+                    : v}
                 </li>
               ))}
             </ul>

@@ -11,9 +11,10 @@ app.use(express.json());
 const TEMP_DIR = path.join(__dirname, "temp");
 if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
 
+const TIME_LIMIT_MS = 3000;
+
 app.post("/compile", (req, res) => {
   const { code, language = "cpp" } = req.body;
-  // use same fallback key in all languages:
   const rawInput = req.body.stdin ?? req.body.input ?? "";
 
   const timestamp = Date.now();
@@ -22,10 +23,8 @@ app.post("/compile", (req, res) => {
   const filename = `code_${timestamp}.${ext}`;
   const filepath = path.join(TEMP_DIR, filename);
 
-  // Save incoming source
   fs.writeFileSync(filepath, code);
 
-  // cleanup helper
   const cleanup = (files) => {
     files.forEach((f) => {
       try { fs.unlinkSync(f); } catch (_) {}
@@ -33,41 +32,57 @@ app.post("/compile", (req, res) => {
   };
 
   if (language === "cpp") {
-    // -- (unchanged) --
     const exe = filepath.replace(".cpp", ".exe");
     exec(`g++ "${filepath}" -o "${exe}"`, (err, _, stderr) => {
-      if (err) return res.json({ output: "Compilation Error:\n" + stderr });
+      if (err) {
+        console.error("Compilation error:", stderr);
+        cleanup([filepath]);
+        return res.json({ output: "Compilation Error:\n" + stderr });
+      }
+
       const p = spawn(exe, []);
+      const timeout = setTimeout(() => p.kill("SIGKILL"), TIME_LIMIT_MS);
+
+      let out = "", errOut = "";
       p.stdin.write(rawInput);
       p.stdin.end();
 
-      let out = "", errOut = "";
       p.stdout.on("data", d => out += d);
       p.stderr.on("data", d => errOut += d);
+
       p.on("close", code => {
+        clearTimeout(timeout);
         cleanup([filepath, exe]);
+
+        if (code === null) return res.json({ output: "Time Limit Exceeded" });
         if (code !== 0) return res.json({ output: "Runtime Error:\n" + errOut });
+
         res.json({ output: out });
       });
     });
 
   } else if (language === "python") {
-    // write rawInput directly
     const p = spawn("python", [filepath]);
+    const timeout = setTimeout(() => p.kill("SIGKILL"), TIME_LIMIT_MS);
+
+    let out = "", errOut = "";
     p.stdin.write(rawInput);
     p.stdin.end();
 
-    let out = "", errOut = "";
     p.stdout.on("data", d => out += d);
     p.stderr.on("data", d => errOut += d);
+
     p.on("close", code => {
+      clearTimeout(timeout);
       cleanup([filepath]);
+
+      if (code === null) return res.json({ output: "Time Limit Exceeded" });
       if (code !== 0) return res.json({ output: "Runtime Error:\n" + errOut });
+
       res.json({ output: out });
     });
 
   } else if (language === "java") {
-    // rewrite class name for uniqueness
     const className = `Main_${timestamp}`;
     const javaFile = path.join(TEMP_DIR, `${className}.java`);
     const modifiedCode = code.replace(
@@ -78,23 +93,28 @@ app.post("/compile", (req, res) => {
 
     exec(`javac "${javaFile}"`, (err, _, stderr) => {
       if (err) {
+        console.error("Compilation error:", stderr);
         cleanup([filepath, javaFile]);
         return res.json({ output: "Compilation Error:\n" + stderr });
       }
+
       const p = spawn("java", ["-cp", TEMP_DIR, className]);
+      const timeout = setTimeout(() => p.kill("SIGKILL"), TIME_LIMIT_MS);
+
+      let out = "", errOut = "";
       p.stdin.write(rawInput);
       p.stdin.end();
 
-      let out = "", errOut = "";
       p.stdout.on("data", d => out += d);
       p.stderr.on("data", d => errOut += d);
+
       p.on("close", code => {
-        cleanup([
-          filepath,
-          javaFile,
-          path.join(TEMP_DIR, `${className}.class`)
-        ]);
+        clearTimeout(timeout);
+        cleanup([filepath, javaFile, path.join(TEMP_DIR, `${className}.class`)]);
+
+        if (code === null) return res.json({ output: "Time Limit Exceeded" });
         if (code !== 0) return res.json({ output: "Runtime Error:\n" + errOut });
+
         res.json({ output: out });
       });
     });

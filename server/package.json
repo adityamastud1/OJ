@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/genai": "^1.11.0",
     "@monaco-editor/react": "^4.7.0",
     "axios": "^1.10.0",
     "cors": "^2.8.5",

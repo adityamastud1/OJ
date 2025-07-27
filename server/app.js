@@ -8,6 +8,7 @@ require('./config/passport');       // your Google strategy, serialize/deseriali
 const authRoutes       = require('./routes/auth');
 const problemRoutes    = require('./routes/problem');
 const leaderboardRoutes= require('./routes/leaderboard');
+const aireviewRoutes    = require('./routes/aireview');
 const app = express();
 app.use(express.json());
 // Enable CORS for frontend
@@ -34,7 +35,7 @@ app.use(passport.session());
 app.use('/auth', authRoutes);
 app.use('/problems', problemRoutes);
 app.use('/leaderboard',leaderboardRoutes);
-
+app.use('/api/aireview', aireviewRoutes);
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -50,3 +51,4 @@ app.use("/api/compile", compileRoute);
 
 const submitRoutes = require('./routes/submit');
 app.use('/api/submit', submitRoutes);
+

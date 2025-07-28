@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Problem = require("../models/Problem");
+const User = require("../models/User");
 const axios = require("axios");
 const Submission = require("../models/submission");
 const { ensureAuthenticated } = require("../middleware/auth");
@@ -78,7 +79,7 @@ router.post("/:problemId", ensureAuthenticated, async (req, res) => {
 
     const allPassed = verdicts.every((v) => v === "Passed");
 
-    await Submission.create({
+    const submission = await Submission.create({
       user: req.user._id,
       problem: problemId,
       language,
@@ -86,6 +87,43 @@ router.post("/:problemId", ensureAuthenticated, async (req, res) => {
       verdicts,
       passed: allPassed,
     });
+
+    await User.findByIdAndUpdate(req.user._id, {
+      $inc: { totalsubmissions: 1 },
+    });
+    const updated = await User.findById(req.user._id);
+    console.log("Updated user:", updated);
+
+    if (allPassed) {
+      // Check if this is the user's first correct submission for this problem
+      const alreadyPassed = await Submission.findOne({
+        user: req.user._id,
+        problem: problemId,
+        passed: true,
+        _id: { $ne: submission._id },
+      });
+
+      if (!alreadyPassed) {
+        // Increment score and totalSolved
+        await User.findByIdAndUpdate(req.user._id, {
+          $inc: { score: problem.score, totalSolved: 1, totalSubmissions: 1 },
+        });
+        const updated = await User.findById(req.user._id);
+        console.log("Updated imli:", updated);
+      } else {
+        // Only increment totalSubmissions
+        await User.findByIdAndUpdate(req.user._id, {
+          $inc: { totalSubmissions: 1 },
+        });
+        const updated = await User.findById(req.user._id);
+        console.log("Updated omli:", updated);
+      }
+    } else {
+      // For failed submissions, only increment totalSubmissions
+      await User.findByIdAndUpdate(req.user._id, {
+        $inc: { totalSubmissions: 1 },
+      });
+    }
 
     res.json({
       message: "Submission evaluated",

@@ -5,7 +5,7 @@ import axios from "axios";
 
 export default function Home() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({ solved: 0, submissions: 0 });
+  // const [stats, setStats] = useState({ solved: 0, submissions: 0 });
   const [daily, setDaily] = useState(null);
   const [preview, setPreview] = useState([]);
 
@@ -18,11 +18,33 @@ export default function Home() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-blue-900 text-white" style={{backgroundColor:  "#20201E"}}>
+    <div
+      className="min-h-screen bg-blue-900 text-white"
+      style={{ backgroundColor: "#20201E" }}
+    >
       {/* Hero */}
       <section className="relative bg-[url('/hero-bg.jpg')] bg-cover bg-center py-24 px-8 text-center">
         <div className="backdrop-brightness-50 p-12 rounded-xl inline-block">
-          <h1 className="font-bold mb-4 mt-[5rem]" style={{fontSize: "4rem", marginTop: "5rem"}}>Sharpen Your Algorithms</h1>
+          {user ? (
+            <h1
+              className="font-bold"
+              style={{
+                fontSize: "4rem",
+                marginBottom: "0rem",
+                marginTop: "3rem",
+              }}
+            >
+              Hello{" "}
+              <span style={{ color: "red" }}>
+                {user?.fullName?.split(" ")[0] || "Guest"}
+              </span>
+            </h1>
+          ) : (
+            <span className="mt-4" style={{ marginTop: "5rem" }}></span>
+          )}
+          <h1 className="font-bold mb-4 mt-[5rem]" style={{ fontSize: "4rem" }}>
+            Sharpen Your Algorithms
+          </h1>
           <p className="text-lg mb-6">
             Solve problems, run code, and climb the leaderboard.
           </p>
@@ -40,14 +62,26 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Stats */}
           {user && (
-            <div className="flex-1 grid grid-cols-2 gap-6">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "24px",
+                width: "100%",
+                marginBottom: "8rem",
+              }}
+            >
               <div className="bg-[#252531] p-6 rounded-lg text-center shadow">
                 <h3 className="text-sm text-gray-400">Problems Solved</h3>
-                <p className="text-3xl font-bold">{stats.solved}</p>
+                <p className="text-3xl font-bold">{user.totalSolved}</p>
               </div>
               <div className="bg-[#252531] p-6 rounded-lg text-center shadow">
                 <h3 className="text-sm text-gray-400">Total Submissions</h3>
-                <p className="text-3xl font-bold">{stats.submissions}</p>
+                <p className="text-3xl font-bold">{user.totalSubmissions}</p>
+              </div>
+              <div className="bg-[#252531] p-6 rounded-lg text-center shadow">
+                <h3 className="text-sm text-gray-400">Total score</h3>
+                <p className="text-3xl font-bold">{user.score}</p>
               </div>
             </div>
           )}
@@ -85,22 +119,12 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-[#252531] p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-2">Live Code Runner</h3>
-            <p className="text-gray-400">
-              Run C++, Python, Java & more, right in your browser.
-            </p>
-          </div>
-          <div className="bg-[#252531] p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-2">Detailed Analytics</h3>
-            <p className="text-gray-400">
-              Track your performance and improve over time.
-            </p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-[#252531] p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold mb-2">
+              <a href = "/leaderboard" className="text-blue-500 hover:underline">
               Real-time Leaderboard
+              </a>
             </h3>
             <p className="text-gray-400">
               Compete and climb up the ranks with your peers.
@@ -109,9 +133,21 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="text-center py-6 text-gray-500 text-sm">
-        © 2025 Your Online Judge — Built with ❤️ by Aditya Mastud
+      <footer
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          backgroundColor: "#20201F",
+          color: "gray",
+          textAlign: "center",
+          padding: "1rem",
+          fontSize: "0.875rem", // equivalent to Tailwind's text-sm
+          zIndex: 50,
+        }}
+      >
+        © 2025 Online Judge — Built by Aditya Mastud
       </footer>
     </div>
   );

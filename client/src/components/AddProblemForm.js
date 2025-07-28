@@ -129,16 +129,75 @@ const AddProblemForm = () => {
             className="w-16 p-1 bg-[#0f0f0f] border border-gray-600 rounded"
           />
         </label>
-        <select
-          name="difficulty"
-          value={form.difficulty}
-          onChange={handleChange}
-          className="w-full p-2 bg-[#0f0f0f] border border-gray-600 rounded text-white focus:outline-none"
-        >
-          <option>Easy</option>
-          <option>Medium</option>
-          <option>Hard</option>
-        </select>
+        <div className="flex gap-4">
+  {/* Difficulty Dropdown */}
+  <div className="w-1/3">
+    <label className="block text-sm font-medium text-gray-200 mb-1">
+      Difficulty
+    </label>
+    <select
+      name="difficulty"
+      value={form.difficulty}
+      onChange={handleChange}
+      className="w-full p-2 bg-[#0f0f0f] border border-gray-600 rounded text-white focus:outline-none"
+    >
+      <option>Easy</option>
+      <option>Medium</option>
+      <option>Hard</option>
+    </select>
+  </div>
+
+  {/* Tags Multi-Select */}
+  <div className="w-2/3">
+    <label className="block text-sm font-medium text-gray-200 mb-1">
+      Tags (max 5)
+    </label>
+    <Select
+      isMulti
+      options={TAG_OPTIONS}
+      value={selectedTags}
+      onChange={handleTagChange}
+      closeMenuOnSelect={false}
+      placeholder="Select tags..."
+      styles={{
+        control: (base) => ({
+          ...base,
+          backgroundColor: "#0f0f0f",
+          borderColor: "#4b5563",
+          color: "white",
+        }),
+        menu: (base) => ({
+          ...base,
+          backgroundColor: "#1f1f23",
+        }),
+        option: (base, state) => ({
+          ...base,
+          backgroundColor: state.isFocused ? "#374151" : "#1f1f23",
+          color: "white",
+        }),
+        multiValue: (base) => ({
+          ...base,
+          backgroundColor: "#374151",
+          color: "white",
+        }),
+        multiValueLabel: (base) => ({
+          ...base,
+          color: "white",
+        }),
+        multiValueRemove: (base) => ({
+          ...base,
+          color: "white",
+          ":hover": {
+            backgroundColor: "#4b5563",
+            color: "white",
+          },
+        }),
+      }}
+      maxMenuHeight={150}
+    />
+  </div>
+</div>
+
 
         <div className="space-y-4">
           <label className="block text-sm font-medium text-gray-200 mb-1">
@@ -236,29 +295,7 @@ const AddProblemForm = () => {
           </button>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-200 mb-1">
-            Tags (max 5)
-          </label>
-          <Select
-            isMulti
-            options={TAG_OPTIONS}
-            value={selectedTags}
-            onChange={handleTagChange}
-            closeMenuOnSelect={false}
-            className="text-black"
-            placeholder="Select tags..."
-            styles={{
-              control: (base) => ({
-                ...base,
-                backgroundColor: "#0f0f0f",
-                borderColor: "#4b5563",
-              }),
-              menu: (base) => ({ ...base, backgroundColor: "#1f1f23" }),
-            }}
-            maxMenuHeight={150}
-          />
-        </div>
+        
 
         <button
           type="submit"

@@ -23,10 +23,9 @@ const UserSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
-  score: {
-    type: Number,
-    default: 0
-  }
+  totalSubmissions: { type: Number, default: 0 },
+  totalSolved: { type: Number, default: 0 },
+  score: { type: Number, default: 0 },
 });
 
 // module.exports = mongoose.model('User', UserSchema);

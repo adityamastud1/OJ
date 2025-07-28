@@ -20,7 +20,7 @@ const ProblemDetails = () => {
   const [showAIReview, setShowAIReview] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
 
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
 
   useEffect(() => {
     const token = localStorage.getItem("token");

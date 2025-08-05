@@ -6,7 +6,6 @@ import Home from './pages/Home.jsx';
 import AddProblemForm from './components/AddProblemForm';
 import ProblemsList from "./pages/ProblemsList.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
-import About from "./pages/About.jsx";
 import Contest from "./pages/Contest.jsx";
 import Personal from "./pages/Personal.jsx";
 import Signin from "./pages/Signin.jsx";
@@ -27,7 +26,6 @@ function App() {
               <Route path="/all-problems" element={<ProblemsList/>} />
               <Route path="/leaderboard" element={<Leaderboard/>} />            
               <Route path="/contest" element={<Contest/>} />
-              <Route path="/about" element={<About/>} />
               <Route path="/personal" element={<Personal/>} />
               <Route path="/signin" element={<Signin />} />
               <Route path="/problems/:id" element={<ProblemDetails />} />

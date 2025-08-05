@@ -27,7 +27,6 @@ function ResponsiveAppBar() {
     { name: 'Problems', path: '/all-problems' },
     { name: 'Contests', path: '/contest' },
     { name: 'Leaderboard', path: '/leaderboard' },
-    { name: 'About', path: '/about' },
     { name: 'Add Problem', path: '/add-problem', adminOnly: true },
   ];
 

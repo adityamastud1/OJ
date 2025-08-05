@@ -60,7 +60,7 @@ function ResponsiveAppBar() {
               mr: 3,
             }}
           >
-            OJ
+            Algo-U
           </Typography>
 
           {/* Left-aligned nav links */}

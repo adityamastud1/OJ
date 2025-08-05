@@ -17,3 +17,5 @@ client/.env
 
 # Optional: log files, temp files
 *.log
+
+keys/algou.pem

@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const User = require("../models/user");
 
 async function ensureAuthenticated(req, res, next) {
   // ✅ Case 1: OAuth (passport session)

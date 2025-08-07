@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Problem = require("../models/Problem");
-const User = require("../models/User");
+const User = require("../models/user");
 const axios = require("axios");
 const Submission = require("../models/submission");
 const { ensureAuthenticated } = require("../middleware/auth");

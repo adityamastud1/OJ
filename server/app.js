@@ -11,10 +11,26 @@ const leaderboardRoutes= require('./routes/leaderboard');
 const aireviewRoutes    = require('./routes/aireview');
 const app = express();
 app.use(express.json());
-// Enable CORS for frontend
+
+
+console.log("CLIENT_URL:", process.env.CLIENT_URL); // ✅ Add this line
+
+const allowedOrigins = [
+  'http://localhost:3000',             // dev
+  'https://algou-oj.vercel.app'       // deployed frontend
+];
+
 app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(session({
